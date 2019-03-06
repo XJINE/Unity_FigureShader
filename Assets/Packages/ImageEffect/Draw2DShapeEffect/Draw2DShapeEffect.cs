@@ -32,6 +32,8 @@ public class Draw2DShapeEffect : ImageEffectBase
 
     #region Field
 
+    public bool autoClear = true;
+
     private new Camera camera;
 
     private ComputeBuffer shapeBuffer;
@@ -78,6 +80,11 @@ public class Draw2DShapeEffect : ImageEffectBase
         {
             this.shapeBuffer.Release();
         }
+
+        if (this.autoClear)
+        {
+            this.shapes.Clear();
+        }
     }
 
     protected void OnDestroy()
@@ -85,7 +92,6 @@ public class Draw2DShapeEffect : ImageEffectBase
         if (this.shapeBuffer != null)
         {
             this.shapeBuffer.Release();
-            this.shapeBuffer.Dispose();
             this.shapeBuffer = null;
         }
     }
