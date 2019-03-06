@@ -11,7 +11,7 @@ public class Draw2DShapeEffect : ImageEffectBase
     {
         Circle = 0,
         Ring   = 1,
-        Sqare  = 2,
+        Square = 2,
         Rect   = 3,
     }
 
@@ -140,16 +140,16 @@ public class Draw2DShapeEffect : ImageEffectBase
         DrawShape(shape, index);
     }
 
-    public void DrawSqare(Vector3 posInWorld, Color color, float size, int index = -1)
+    public void DrawSquare(Vector3 posInWorld, Color color, float size, int index = -1)
     {
-        DrawSqare((Vector2)this.camera.WorldToViewportPoint(posInWorld), color, size, index);
+        DrawSquare((Vector2)this.camera.WorldToViewportPoint(posInWorld), color, size, index);
     }
 
-    public void DrawSqare(Vector2 posInScreen, Color color, float size, int index = -1)
+    public void DrawSquare(Vector2 posInScreen, Color color, float size, int index = -1)
     {
         ShapeData shape = new ShapeData()
         {
-            shape     = Shape.Sqare,
+            shape     = Shape.Square,
             position  = new Vector4(posInScreen.x, posInScreen.y, 0, 0),
             parameter = new Vector4(size, 0, 0, 0),
             color     = color
