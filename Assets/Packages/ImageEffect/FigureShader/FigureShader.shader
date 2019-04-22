@@ -2,6 +2,7 @@
 {
     Properties
     {
+        [HideInInspector]
         _MainTex ("Texture", 2D) = "white" {}
     }
     SubShader
@@ -22,9 +23,12 @@
 
             struct FigureData
             {
+                // NOTE:
+                // parameter.xy = position.
+                // parameter.zw = each parameters.
+
                 int    type;
-                float4 pos;
-                float4 param;
+                float4 parameter;
                 float4 color;
             };
 
@@ -39,11 +43,21 @@
 
             void drawCircle(float2 inputPos, float2 centerPos, float radius, fixed4 color, inout fixed4 dest)
             {
+                float aspect = _ScreenParams.x / _ScreenParams.y;
+
+                inputPos.x  = inputPos.x  * aspect;
+                centerPos.x = centerPos.x * aspect;
+
                 dest = length(inputPos - centerPos) < radius ? alphaBlend(color, dest) : dest;
             }
 
             void drawRing(float2 inputPos, float2 centerPos, float innerRad, float outerRad, fixed4 color, inout fixed4 dest)
             {
+                float aspect = _ScreenParams.x / _ScreenParams.y;
+
+                inputPos.x  = inputPos.x  * aspect;
+                centerPos.x = centerPos.x * aspect;
+
                 float l = length(inputPos - centerPos);
 
                 dest = innerRad < l && l < outerRad ? alphaBlend(color, dest) : dest;
@@ -51,6 +65,11 @@
 
             void drawSqare(float2 inputPos, float2 centerPos, float size, fixed4 color, inout fixed4 dest)
             {
+                float aspect = _ScreenParams.x / _ScreenParams.y;
+
+                inputPos.x  = inputPos.x  * aspect;
+                centerPos.x = centerPos.x * aspect;
+
                 float2 q = (inputPos - centerPos) / size;
 
                 dest = abs(q.x) < 1.0 && abs(q.y) < 1.0 ? alphaBlend(color, dest) : dest;
@@ -66,35 +85,45 @@
 
             float4 frag(v2f_img input) : SV_Target
             {
-                float4 dest   = tex2D(_MainTex, input.uv);;
-                float  aspect = _ScreenParams.x / _ScreenParams.y;
+                float4 color = tex2D(_MainTex, input.uv);
 
-                float2 inputPos = float2(input.uv.x * aspect, input.uv.y);
+                int figureDataBufferLength = (int)_FigureDataBuffer.Length;
 
                 FigureData figureData;
-                int figureDataBufferLength = (int)_FigureDataBuffer.Length;
 
                 for (int i = 0; i < figureDataBufferLength; i++)
                 {
-                    figureData     = _FigureDataBuffer[i];
-                    figureData.pos = float4(figureData.pos.x * aspect,
-                                             figureData.pos.y,
-                                             figureData.pos.z * aspect,
-                                             figureData.pos.w);
+                    figureData = _FigureDataBuffer[i];
 
                     switch(figureData.type)
                     {
                         case 0:
-                            drawCircle(inputPos, figureData.pos, figureData.param.x, figureData.color, dest);
+                            drawCircle(input.uv,
+                                       figureData.parameter.xy,
+                                       figureData.parameter.z,
+                                       figureData.color,
+                                       color);
                             break;
                         case 1:
-                            drawRing(inputPos, figureData.pos, figureData.param.x, figureData.param.y, figureData.color, dest);
+                            drawRing(input.uv,
+                                     figureData.parameter.xy,
+                                     figureData.parameter.z,
+                                     figureData.parameter.w,
+                                     figureData.color,
+                                     color);
                             break;
                         case 2:
-                            drawSqare(inputPos, figureData.pos, figureData.param.x, figureData.color, dest);
+                            drawSqare(input.uv,
+                                      figureData.parameter.xy,
+                                      figureData.parameter.z,
+                                      figureData.color,
+                                      color);
                             break;
                         case 3:
-                            drawRect(inputPos, figureData.pos, figureData.color, dest);
+                            drawRect(input.uv,
+                                     figureData.parameter,
+                                     figureData.color,
+                                     color);
                             break;
                         default:
                             // Nothing to do.
@@ -102,7 +131,7 @@
                     }
                 }
 
-                return dest;
+                return color;
             }
 
             ENDCG

@@ -1,6 +1,6 @@
-# Unity_Draw2DShapeEffect
+# Unity_FigureShader
 
-<img src="https://github.com/XJINE/Unity_Draw2DShapeEffect/blob/master/Screenshot.png" width="100%" height="auto" />
+<img src="https://github.com/XJINE/Unity_FigureShader/blob/master/Screenshot.png" width="100%" height="auto" />
 
 Draw some 2D shapes with FragmentShader. This effect should be used for a debug.
 
@@ -10,13 +10,17 @@ You can draw some Circle, Ring, Square and Rect into screen space.
 Set a position, color, size and any other parameters into these functions.
 
 ``` csharp
-this.effect.DrawCircle(new Vector2(0, 0), Color.red, 1);
+this.figureShader.Clear();
 
-this.effect.DrawRing(new Vector2(0.8f, 0.8f), Color.green, 0.1f, 0.15f);
+this.figureShader.DrawCircle(0, 0, 1, Color.red);
 
-this.effect.DrawSquare(this.transform.position, Color.blue, 0.2f, 10);
+this.figureShader.DrawRing(0.8f, 0.8f, 0.1f, 0.15f, Color.green);
 
-this.effect.DrawRect(new Vector2(0.5f, 0), new Vector2(1, 0.5f), new Color(1, 1, 0, 0.5f));
+this.figureShader.DrawSquare
+(Camera.main.WorldToViewportPoint(this.transform.position), 0.2f, Color.blue, 10);
+
+this.figureShader.DrawRect
+(new Vector2(0.5f, 0), new Vector2(1, 0.5f), new Color(1, 1, 0, 0.5f));
 ```
 
 ### Drawing Order
@@ -31,7 +35,7 @@ Smaller index shape will be drawn much faster than the others.
 
 You can import this asset from UnityPackage.
 
-- [Draw2DShapeEffect.unitypackage](https://github.com/XJINE/Unity_Draw2DShapeEffect/blob/master/Draw2DShapeEffect.unitypackage)
+- [FigureShader.unitypackage](https://github.com/XJINE/Unity_FigureShader/blob/master/FigureShader.unitypackage)
 
 ### Dependencies
 

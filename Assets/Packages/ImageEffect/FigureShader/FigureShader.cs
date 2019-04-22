@@ -5,9 +5,11 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class FigureShader : ImageEffectBase
 {
-    #region Enum
+    #region Field
 
-    public enum Shape : int
+    protected static int FigureDataBufferID = -1;
+
+    public enum Figure : int
     {
         Circle = 0,
         Ring   = 1,
@@ -15,30 +17,17 @@ public class FigureShader : ImageEffectBase
         Rect   = 3,
     }
 
-    #endregion Enum
-
-    #region Struct
-
     [System.Serializable]
     public struct FigureData
     {
-        public Shape   shape;
-        public Vector4 position;
+        public Figure  figure;
         public Vector4 parameter;
         public Color   color;
     }
 
-    #endregion Struct
-
-    #region Field
-
-    private new Camera camera;
-
     private ComputeBuffer figureDataBuffer;
 
     private readonly SortedList<int, List<FigureData>> figureDataList = new SortedList<int, List<FigureData>>();
-
-    protected static int FigureDataBufferID = -1;
 
     public bool autoClear = true;
 
@@ -101,82 +90,71 @@ public class FigureShader : ImageEffectBase
         }
     }
 
-    public void DrawCircle(Vector3 posInWorld, Color color, float radius, int index = -1)
+    public void DrawCircle(Vector2 pos, float radius, Color color, int index = -1)
     {
-        DrawCircle((Vector2)this.camera.WorldToViewportPoint(posInWorld), color, radius, index);
+        DrawCircle(pos.x, pos.y, radius, color, index);
     }
 
-    public void DrawCircle(Vector2 posInScreen, Color color, float radius, int index = -1)
+    public void DrawCircle(float posX, float posY, float radius, Color color, int index = -1)
     {
-        FigureData shape = new FigureData()
+        DrawFigure(new FigureData()
         {
-            shape     = Shape.Circle,
-            position  = new Vector4(posInScreen.x, posInScreen.y, 0, 0),
-            parameter = new Vector4(radius, 0, 0, 0),
+            figure    = Figure.Circle,
+            parameter = new Vector4(posX, posY, radius, 0),
             color     = color
-        };
-
-        DrawShape(shape, index);
+        },
+        index);
     }
 
-    public void DrawRing(Vector3 posInWorld, Color color, float innerRadius, float outerRadius, int index = -1)
+    public void DrawRing(Vector2 pos, float inRad, float outRad, Color color, int index = -1)
     {
-        DrawRing((Vector2)this.camera.WorldToViewportPoint(posInWorld), color, innerRadius, outerRadius, index);
+        DrawRing(pos.x, pos.y, inRad, outRad, color, index);
     }
 
-    public void DrawRing(Vector2 posInScreen, Color color, float innerRadius, float outerRadius, int index = -1)
+    public void DrawRing(float posX, float posY, float inRad, float outRad, Color color, int index = -1)
     {
-        FigureData shape = new FigureData()
+        DrawFigure(new FigureData()
         {
-            shape     = Shape.Ring,
-            position  = new Vector4(posInScreen.x, posInScreen.y, 0, 0),
-            parameter = new Vector4(innerRadius, outerRadius, 0, 0),
-            color = color
-        };
-
-        DrawShape(shape, index);
-    }
-
-    public void DrawSquare(Vector3 posInWorld, Color color, float size, int index = -1)
-    {
-        DrawSquare((Vector2)this.camera.WorldToViewportPoint(posInWorld), color, size, index);
-    }
-
-    public void DrawSquare(Vector2 posInScreen, Color color, float size, int index = -1)
-    {
-        FigureData shape = new FigureData()
-        {
-            shape     = Shape.Square,
-            position  = new Vector4(posInScreen.x, posInScreen.y, 0, 0),
-            parameter = new Vector4(size, 0, 0, 0),
+            figure    = Figure.Ring,
+            parameter = new Vector4(posX, posY, inRad, outRad),
             color     = color
-        };
-
-        DrawShape(shape, index);
+        },
+        index);
     }
 
-    public void DrawRect(Vector3 posInWorld1, Vector3 posInWorld2, Color color, int index = -1)
+    public void DrawSquare(Vector2 pos, float size, Color color, int index = -1)
     {
-        DrawRect((Vector2)this.camera.WorldToViewportPoint(posInWorld1),
-                 (Vector2)this.camera.WorldToViewportPoint(posInWorld2),
-                 color,
-                 index);
+        DrawSquare(pos.x, pos.y, size, color, index);
     }
 
-    public void DrawRect(Vector2 posInScreen1, Vector2 posInScreen2, Color color, int index = -1)
+    public void DrawSquare(float posX, float posY, float size, Color color, int index = -1)
     {
-        FigureData shape = new FigureData()
+        DrawFigure(new FigureData()
         {
-            shape     = Shape.Rect,
-            position  = new Vector4(posInScreen1.x, posInScreen1.y, posInScreen2.x, posInScreen2.y),
-            parameter = new Vector4(0, 0, 0, 0),
+            figure    = Figure.Square,
+            parameter = new Vector4(posX, posY, size, 0),
             color     = color
-        };
-
-        DrawShape(shape, index);
+        },
+        index);
     }
 
-    public void DrawShape(FigureData figureData, int index = 0)
+    public void DrawRect(Vector2 min, Vector2 max, Color color, int index = -1)
+    {
+        DrawRect(min.x, min.y, max.x, max.y, color, index);
+    }
+
+    public void DrawRect(float minX, float minY, float maxX, float maxY, Color color, int index = -1)
+    {
+        DrawFigure(new FigureData()
+        {
+            figure    = Figure.Rect,
+            parameter = new Vector4(minX, minY, maxX, maxY),
+            color     = color
+        },
+        index);
+    }
+
+    public void DrawFigure(FigureData figureData, int index = 0)
     {
         if (this.figureDataList.ContainsKey(index))
         {
