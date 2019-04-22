@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Draw2DShapeEffect"
+﻿Shader "Hidden/FigureShader"
 {
     Properties
     {
@@ -20,7 +20,7 @@
             #pragma vertex vert_img
             #pragma fragment frag
 
-            struct Shape
+            struct FigureData
             {
                 int    type;
                 float4 pos;
@@ -28,7 +28,7 @@
                 float4 color;
             };
 
-            StructuredBuffer<Shape> _ShapeBuffer;
+            StructuredBuffer<FigureData> _FigureDataBuffer;
 
             sampler2D _MainTex;
 
@@ -71,27 +71,30 @@
 
                 float2 inputPos = float2(input.uv.x * aspect, input.uv.y);
 
-                Shape shape;
-                int shapeLength = (int)_ShapeBuffer.Length;
+                FigureData figureData;
+                int figureDataBufferLength = (int)_FigureDataBuffer.Length;
 
-                for (int i = 0; i < shapeLength; i++)
+                for (int i = 0; i < figureDataBufferLength; i++)
                 {
-                    shape     = _ShapeBuffer[i];
-                    shape.pos = float4(shape.pos.x * aspect, shape.pos.y, shape.pos.z * aspect, shape.pos.w);
+                    figureData     = _FigureDataBuffer[i];
+                    figureData.pos = float4(figureData.pos.x * aspect,
+                                             figureData.pos.y,
+                                             figureData.pos.z * aspect,
+                                             figureData.pos.w);
 
-                    switch(shape.type)
+                    switch(figureData.type)
                     {
                         case 0:
-                            drawCircle(inputPos, shape.pos, shape.param.x, shape.color, dest);
+                            drawCircle(inputPos, figureData.pos, figureData.param.x, figureData.color, dest);
                             break;
                         case 1:
-                            drawRing(inputPos, shape.pos, shape.param.x, shape.param.y, shape.color, dest);
+                            drawRing(inputPos, figureData.pos, figureData.param.x, figureData.param.y, figureData.color, dest);
                             break;
                         case 2:
-                            drawSqare(inputPos, shape.pos, shape.param.x, shape.color, dest);
+                            drawSqare(inputPos, figureData.pos, figureData.param.x, figureData.color, dest);
                             break;
                         case 3:
-                            drawRect(inputPos, shape.pos, shape.color, dest);
+                            drawRect(inputPos, figureData.pos, figureData.color, dest);
                             break;
                         default:
                             // Nothing to do.

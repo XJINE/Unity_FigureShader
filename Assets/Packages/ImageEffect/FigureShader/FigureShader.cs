@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 
 [ExecuteInEditMode]
-public class Draw2DShapeEffect : ImageEffectBase
+public class FigureShader : ImageEffectBase
 {
     #region Enum
 
@@ -20,7 +20,7 @@ public class Draw2DShapeEffect : ImageEffectBase
     #region Struct
 
     [System.Serializable]
-    public struct ShapeData
+    public struct FigureData
     {
         public Shape   shape;
         public Vector4 position;
@@ -32,75 +32,72 @@ public class Draw2DShapeEffect : ImageEffectBase
 
     #region Field
 
-    public bool autoClear = true;
-
     private new Camera camera;
 
-    private ComputeBuffer shapeBuffer;
+    private ComputeBuffer figureDataBuffer;
 
-    // NOTE:
-    // shapes must be initialized in Field.
-    // Because shapes is not initialized in sometimes when initialized in Start() or Awake().
+    private readonly SortedList<int, List<FigureData>> figureDataList = new SortedList<int, List<FigureData>>();
 
-    private readonly SortedList<int, List<ShapeData>> shapes = new SortedList<int, List<ShapeData>>();
+    protected static int FigureDataBufferID = -1;
 
-    private int shapeBufferID;
+    public bool autoClear = true;
 
     #endregion Field
 
     #region Method
 
-    protected override void Start()
+    protected virtual void Awake()
     {
-        base.Start();
-        this.camera = base.GetComponent<Camera>();
-        this.shapeBufferID = Shader.PropertyToID("_ShapeBuffer");
+        if (FigureShader.FigureDataBufferID < 0)
+        {
+            FigureShader.FigureDataBufferID = Shader.PropertyToID("_FigureDataBuffer");
+        }
     }
 
     protected override void OnRenderImage(RenderTexture src, RenderTexture dest)
     {
-        if (this.shapes.Count != 0)
+        if (this.figureDataList.Count != 0)
         {
-            List<ShapeData> shapes = new List<ShapeData>();
+            List<FigureData> figureDataList = new List<FigureData>();
 
-            foreach (var data in this.shapes)
+            foreach (var data in this.figureDataList)
             {
-                shapes.AddRange(data.Value);
+                figureDataList.AddRange(data.Value);
             }
 
-            this.shapeBuffer = new ComputeBuffer(shapes.Count, Marshal.SizeOf(typeof(ShapeData)));
-            this.shapeBuffer.SetData(shapes);
+            this.figureDataBuffer = new ComputeBuffer(figureDataList.Count, Marshal.SizeOf(typeof(FigureData)));
+            this.figureDataBuffer.SetData(figureDataList);
 
-            base.material.SetBuffer(this.shapeBufferID, this.shapeBuffer);
+            base.material.SetBuffer(FigureShader.FigureDataBufferID, this.figureDataBuffer);
         }
 
         base.OnRenderImage(src, dest);
 
-        if (this.shapeBuffer != null)
+        if (this.figureDataBuffer != null)
         {
-            this.shapeBuffer.Release();
+            this.figureDataBuffer.Release();
         }
 
         if (this.autoClear)
         {
-            this.shapes.Clear();
+            this.figureDataList.Clear();
         }
     }
 
     protected void OnDestroy()
     {
-        if (this.shapeBuffer != null)
+        if (this.figureDataBuffer != null)
         {
-            this.shapeBuffer.Release();
-            this.shapeBuffer = null;
+            this.figureDataBuffer.Release();
+            this.figureDataBuffer = null;
         }
     }
 
     public void Clear()
     {
-        if (this.shapes != null)
+        if (this.figureDataList != null)
         {
-            this.shapes.Clear();
+            this.figureDataList.Clear();
         }
     }
 
@@ -111,7 +108,7 @@ public class Draw2DShapeEffect : ImageEffectBase
 
     public void DrawCircle(Vector2 posInScreen, Color color, float radius, int index = -1)
     {
-        ShapeData shape = new ShapeData()
+        FigureData shape = new FigureData()
         {
             shape     = Shape.Circle,
             position  = new Vector4(posInScreen.x, posInScreen.y, 0, 0),
@@ -129,7 +126,7 @@ public class Draw2DShapeEffect : ImageEffectBase
 
     public void DrawRing(Vector2 posInScreen, Color color, float innerRadius, float outerRadius, int index = -1)
     {
-        ShapeData shape = new ShapeData()
+        FigureData shape = new FigureData()
         {
             shape     = Shape.Ring,
             position  = new Vector4(posInScreen.x, posInScreen.y, 0, 0),
@@ -147,7 +144,7 @@ public class Draw2DShapeEffect : ImageEffectBase
 
     public void DrawSquare(Vector2 posInScreen, Color color, float size, int index = -1)
     {
-        ShapeData shape = new ShapeData()
+        FigureData shape = new FigureData()
         {
             shape     = Shape.Square,
             position  = new Vector4(posInScreen.x, posInScreen.y, 0, 0),
@@ -168,7 +165,7 @@ public class Draw2DShapeEffect : ImageEffectBase
 
     public void DrawRect(Vector2 posInScreen1, Vector2 posInScreen2, Color color, int index = -1)
     {
-        ShapeData shape = new ShapeData()
+        FigureData shape = new FigureData()
         {
             shape     = Shape.Rect,
             position  = new Vector4(posInScreen1.x, posInScreen1.y, posInScreen2.x, posInScreen2.y),
@@ -179,15 +176,15 @@ public class Draw2DShapeEffect : ImageEffectBase
         DrawShape(shape, index);
     }
 
-    public void DrawShape(ShapeData shape, int index = 0)
+    public void DrawShape(FigureData figureData, int index = 0)
     {
-        if (this.shapes.ContainsKey(index))
+        if (this.figureDataList.ContainsKey(index))
         {
-            this.shapes[index].Add(shape);
+            this.figureDataList[index].Add(figureData);
         }
         else
         {
-            this.shapes.Add(index, new List<ShapeData>(){ shape });
+            this.figureDataList.Add(index, new List<FigureData>(){ figureData });
         }
     }
 
