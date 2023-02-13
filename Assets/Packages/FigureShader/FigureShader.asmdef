@@ -1,0 +1,16 @@
+{
+    "name": "FigureShader",
+    "rootNamespace": "",
+    "references": [
+        "GUID:7370704f9ea536844ba67fac15b5e9b1"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
