@@ -17,8 +17,8 @@
             
             #include "UnityCG.cginc"
 
-            #pragma target 5.0
-            #pragma vertex vert_img
+            #pragma target   5.0
+            #pragma vertex   vert_img
             #pragma fragment frag
 
             struct FigureData
@@ -89,11 +89,9 @@
 
                 int figureDataBufferLength = (int)_FigureDataBuffer.Length;
 
-                FigureData figureData;
-
                 for (int i = 0; i < figureDataBufferLength; i++)
                 {
-                    figureData = _FigureDataBuffer[i];
+                    FigureData figureData = _FigureDataBuffer[i];
 
                     switch(figureData.type)
                     {

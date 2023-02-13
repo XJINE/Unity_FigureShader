@@ -2,14 +2,14 @@
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class FigureShader : ImageEffectBase
 {
     #region Field
 
     protected static int FigureDataBufferID = -1;
 
-    public enum Figure : int
+    public enum Figure
     {
         Circle = 0,
         Ring   = 1,
@@ -25,9 +25,9 @@ public class FigureShader : ImageEffectBase
         public Color   color;
     }
 
-    private ComputeBuffer figureDataBuffer;
-
-    private readonly SortedList<int, List<FigureData>> figureDataList = new SortedList<int, List<FigureData>>();
+    private          ComputeBuffer                     _figureDataBuffer;
+    private          List<FigureData>                  _figureDataList;
+    private readonly SortedList<int, List<FigureData>> _sortedFigureDataList = new ();
 
     public bool autoClear = true;
 
@@ -37,56 +37,52 @@ public class FigureShader : ImageEffectBase
 
     protected virtual void Awake()
     {
-        if (FigureShader.FigureDataBufferID < 0)
+        if (FigureDataBufferID < 0)
         {
-            FigureShader.FigureDataBufferID = Shader.PropertyToID("_FigureDataBuffer");
+            FigureDataBufferID = Shader.PropertyToID("_FigureDataBuffer");
         }
+
+        // NOTE:
+        // 1000 means enough size to use.
+        _figureDataList = new List<FigureData>(1000);
     }
 
     protected override void OnRenderImage(RenderTexture src, RenderTexture dest)
     {
-        if (this.figureDataList.Count != 0)
+        if (_sortedFigureDataList.Count != 0)
         {
-            List<FigureData> figureDataList = new List<FigureData>();
-
-            foreach (var data in this.figureDataList)
+            foreach (var data in _sortedFigureDataList)
             {
-                figureDataList.AddRange(data.Value);
+                _figureDataList.AddRange(data.Value);
             }
 
-            this.figureDataBuffer = new ComputeBuffer(figureDataList.Count, Marshal.SizeOf(typeof(FigureData)));
-            this.figureDataBuffer.SetData(figureDataList);
+            _figureDataBuffer = new ComputeBuffer(_figureDataList.Count, Marshal.SizeOf(typeof(FigureData)));
+            _figureDataBuffer.SetData(_figureDataList);
 
-            base.material.SetBuffer(FigureShader.FigureDataBufferID, this.figureDataBuffer);
+            material.SetBuffer(FigureDataBufferID, _figureDataBuffer);
         }
 
         base.OnRenderImage(src, dest);
 
-        if (this.figureDataBuffer != null)
-        {
-            this.figureDataBuffer.Release();
-        }
-
-        if (this.autoClear)
-        {
-            this.figureDataList.Clear();
-        }
+        if (_figureDataBuffer != null) { _figureDataBuffer    .Release(); }
+        if (_figureDataList   != null) { _figureDataList      .Clear();   }
+        if (autoClear)                 { _sortedFigureDataList.Clear();   }
     }
 
     protected void OnDestroy()
     {
-        if (this.figureDataBuffer != null)
+        if (_figureDataBuffer != null)
         {
-            this.figureDataBuffer.Release();
-            this.figureDataBuffer = null;
+            _figureDataBuffer.Release();
+            _figureDataBuffer = null;
         }
     }
 
     public void Clear()
     {
-        if (this.figureDataList != null)
+        if (_sortedFigureDataList != null)
         {
-            this.figureDataList.Clear();
+            _sortedFigureDataList.Clear();
         }
     }
 
@@ -156,13 +152,13 @@ public class FigureShader : ImageEffectBase
 
     public void DrawFigure(FigureData figureData, int index = 0)
     {
-        if (this.figureDataList.ContainsKey(index))
+        if (_sortedFigureDataList.ContainsKey(index))
         {
-            this.figureDataList[index].Add(figureData);
+            _sortedFigureDataList[index].Add(figureData);
         }
         else
         {
-            this.figureDataList.Add(index, new List<FigureData>(){ figureData });
+            _sortedFigureDataList.Add(index, new List<FigureData>(){ figureData });
         }
     }
 

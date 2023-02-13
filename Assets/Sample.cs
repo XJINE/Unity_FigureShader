@@ -1,25 +1,36 @@
 ﻿using UnityEngine;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class Sample : MonoBehaviour
 {
-    public FigureShader figureShader;
+    private FigureShader _figureShader;
 
-    void Update()
+    private FigureShader _FigureShader
+    {
+        get
+        {
+            if (_figureShader == null)
+            {
+                _figureShader = GetComponent<FigureShader>();
+            }
+
+            return _figureShader;
+        }
+    }
+
+    private void Update()
     {
         // NOTE:
         // Use Clear when FigureShader.autoClear = false.
 
-        this.figureShader.Clear();
+        _FigureShader.Clear();
 
-        this.figureShader.DrawCircle(0, 0, 1, Color.red);
+        _FigureShader.DrawCircle(0, 0, 1, Color.red);
 
-        this.figureShader.DrawRing(0.8f, 0.8f, 0.1f, 0.15f, Color.green);
+        _FigureShader.DrawRing(0.8f, 0.8f, 0.1f, 0.15f, Color.green);
 
-        this.figureShader.DrawSquare
-        (Camera.main.WorldToViewportPoint(this.transform.position), 0.2f, Color.blue, 10);
+        _FigureShader.DrawSquare(Camera.main.WorldToViewportPoint(transform.position), 0.2f, Color.blue, 10);
 
-        this.figureShader.DrawRect
-        (new Vector2(0.5f, 0), new Vector2(1, 0.5f), new Color(1, 1, 0, 0.5f));
+        _FigureShader.DrawRect(new Vector2(0.5f, 0), new Vector2(1, 0.5f), new Color(1, 1, 0, 0.5f));
     }
 }
